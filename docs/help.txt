@@ -1,4 +1,11 @@
+# create ssh keys
 ssh-keygen -t rsa -b 4096
+
+# list vm ips
+az vm list-ip-addresses --resource-group rg-cluster-flux --output table
+
+#ssh into vm
+ssh -i ~/.ssh/YOUR_PRIVATE_KEY_FILE username@<PUBLIC_IP>
 
 
 workflow:
