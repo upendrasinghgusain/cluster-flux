@@ -22,6 +22,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{CABDB92A-B
 		docs\help.txt = docs\help.txt
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "infra\scripts", "{45792F6E-35F6-45A1-9D89-77B18A6ACAFB}"
+	ProjectSection(SolutionItems) = preProject
+		provision-and-setup.sh = provision-and-setup.sh
+		setup-k3s-cluster.sh = setup-k3s-cluster.sh
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +49,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{B5EBBE4D-7BE9-4C14-8B0F-4896F92FA3C4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{1165684A-6B1C-4A07-9B8D-3B3F814D3237} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{45792F6E-35F6-45A1-9D89-77B18A6ACAFB} = {681B62D8-1327-4B09-AB52-345BDD08779B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C1AF85EA-BE6B-48F2-8ACE-67B1C01984AD}

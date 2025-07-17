@@ -1,6 +1,11 @@
 # create ssh keys
 ssh-keygen -t rsa -b 4096
 
+# one click
+chmod +x provision-and-setup.sh
+./provision-and-setup.sh
+
+
 # list vm ips
 az vm list-ip-addresses --resource-group rg-cluster-flux --output table
 
