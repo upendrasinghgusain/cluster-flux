@@ -22,10 +22,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{CABDB92A-B
 		docs\help.txt = docs\help.txt
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "infra\scripts", "{45792F6E-35F6-45A1-9D89-77B18A6ACAFB}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{45792F6E-35F6-45A1-9D89-77B18A6ACAFB}"
 	ProjectSection(SolutionItems) = preProject
-		provision-and-setup.sh = provision-and-setup.sh
-		setup-k3s-cluster.sh = setup-k3s-cluster.sh
+		infra\scripts\provision-and-setup.sh = infra\scripts\provision-and-setup.sh
+		infra\scripts\setup-k3s-cluster.sh = infra\scripts\setup-k3s-cluster.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "k8s-manifests", "k8s-manifests", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		k8s-manifests\aspnet-nodeport.yaml = k8s-manifests\aspnet-nodeport.yaml
+		k8s-manifests\nginx-nodeport.yaml = k8s-manifests\nginx-nodeport.yaml
+		k8s-manifests\web-demo.yaml = k8s-manifests\web-demo.yaml
 	EndProjectSection
 EndProject
 Global

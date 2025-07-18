@@ -9,9 +9,72 @@ chmod +x provision-and-setup.sh
 # list vm ips
 az vm list-ip-addresses --resource-group rg-cluster-flux --output table
 
+
+
+########################### prep master vm for k3s ###################################
+# add inbund AllowAnyCustom6443Inbound
+
 #ssh into vm
 ssh -i ~/.ssh/YOUR_PRIVATE_KEY_FILE username@<PUBLIC_IP>
 
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--tls-san <your-public-ip>" sh -
+(TLS SANs: Always install K3s with --tls-san to include public IPs or DNS names in the certificate.)
 
-workflow:
-create vms
+sudo chmod 644 /etc/rancher/k3s/k3s.yaml
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+# prep local machine to use kubctl (copy it to a file in local machine)
+sudo cat /etc/rancher/k3s/k3s.yaml
+
+# set kubctl config file path
+set KUBECONFIG=C:\Development\PoCs\ClusterFlux\infra\scripts\local\k3s.yaml
+
+(# install curl on local machine)
+
+# deploy to k8s (from saved yaml file)
+kubectl apply -f web-demo.yaml
+kubectl get svc web-api-svc
+kubectl get pods -l app=web-api
+
+(Add an inbound rule fro the port in vm)
+curl http://172.167.201.51:30849
+
+#################################################################################
+
+
+########################### prep worker vm for k3s ###################################
+
+# on master
+sudo cat /var/lib/rancher/k3s/server/node-token
+
+# on worker
+curl -sfL https://get.k3s.io | K3S_URL=https://master-ip:6443 K3S_TOKEN=<token> K3S_NODE_NAME=node-1 sh -
+
+######################################################################################
+
+
+
+
+kubectl get svc
+
+# Delete all workload resources in default namespace
+kubectl delete all --all
+
+# scaling
+kubectl scale deployment web-api-deployment --replicas=5
+kubectl get pods -l app=web-api -o wide
+
+
+approaches:
+
+#1
+A single-node server installation
+with manual setup
+with nodeport
+with web api only
+
+#2
+one master node with worker node(s) installation
+with manual setup
+with nodeport
+with web api only
