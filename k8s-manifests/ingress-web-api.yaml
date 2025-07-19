@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aspnet-api-deployment
+  labels:
+    app: aspnet-api
+spec:
+  replicas: 3 # For a single-node setup, 1 replica is typical. For higher availability on multi-node, increase this.
+  selector:
+    matchLabels:
+      app: aspnet-api
+  template:
+    metadata:
+      labels:
+        app: aspnet-api
+    spec:
+      containers:
+      - name: aspnet-api
+        image: upendragusain/clusterflux-api:latest # Replace with your image
+        ports:
+        - containerPort: 8080 # The port your ASP.NET Core app listens on (default is often 80/443, but Kestrel in containers often defaults to 8080 or other)
+        env:
+        - name: ASPNETCORE_URLS
+          value: http://+:8080 # Ensure your app listens on 8080
+        # Add resource limits/requests for production
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aspnet-api-service
+spec:
+  selector:
+    app: aspnet-api
+  ports:
+    - protocol: TCP
+      port: 80 # The port the service will listen on within the cluster
+      targetPort: 8080 # The port your application inside the pod is listening on
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aspnet-api-ingress
+  annotations:
+    # Optional: If you want to use Let's Encrypt for automatic TLS (requires cert-manager)
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    kubernetes.io/ingress.class: "traefik" # Explicitly specify Traefik (default in K3s)
+spec:
+  rules:
+  - host: upendra.gusain.co.uk # Replace with your actual domain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: aspnet-api-service
+            port:
+              number: 80 # The port of the Service (aspnet-api-service)
+
+  # Optional: TLS configuration (requires cert-manager or manual certs)
+  # tls:
+  # - hosts:
+  #   - api.yourdomain.com
+  #   secretName: api-tls-secret # K8s secret containing your TLS certificate and key      

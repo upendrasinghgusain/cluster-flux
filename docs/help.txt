@@ -15,9 +15,9 @@ az vm list-ip-addresses --resource-group rg-cluster-flux --output table
 # add inbund AllowAnyCustom6443Inbound
 
 #ssh into vm
-ssh -i C:\Users\UGusain\Downloads\vm1_key.pem upendragusain@172.167.83.49
+ssh -i C:\Users\UGusain\Downloads\vm1_key.pem upendragusain@172.166.237.233
 
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--tls-san 172.167.83.49" sh -
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--tls-san 172.166.237.233" sh -
 (TLS SANs: Always install K3s with --tls-san to include public IPs or DNS names in the certificate.)
 
 sudo chmod 644 /etc/rancher/k3s/k3s.yaml
