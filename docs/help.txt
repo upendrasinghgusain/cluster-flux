@@ -15,9 +15,9 @@ az vm list-ip-addresses --resource-group rg-cluster-flux --output table
 # add inbund AllowAnyCustom6443Inbound
 
 #ssh into vm
-ssh -i ~/.ssh/YOUR_PRIVATE_KEY_FILE username@<PUBLIC_IP>
+ssh -i C:\Users\UGusain\Downloads\vm1_key.pem upendragusain@172.167.83.49
 
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--tls-san <your-public-ip>" sh -
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--tls-san 172.167.83.49" sh -
 (TLS SANs: Always install K3s with --tls-san to include public IPs or DNS names in the certificate.)
 
 sudo chmod 644 /etc/rancher/k3s/k3s.yaml
@@ -27,7 +27,7 @@ export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 sudo cat /etc/rancher/k3s/k3s.yaml
 
 # set kubctl config file path
-set KUBECONFIG=C:\Development\PoCs\ClusterFlux\infra\scripts\local\k3s.yaml
+set KUBECONFIG=C:\Users\UGusain\Downloads\k3s.yaml
 
 (# install curl on local machine)
 
@@ -39,7 +39,6 @@ kubectl get pods -l app=web-api
 (Add an inbound rule fro the port in vm)
 curl http://172.167.201.51:30849
 
-#################################################################################
 
 
 ########################### prep worker vm for k3s ###################################
@@ -50,10 +49,9 @@ sudo cat /var/lib/rancher/k3s/server/node-token
 # on worker
 curl -sfL https://get.k3s.io | K3S_URL=https://master-ip:6443 K3S_TOKEN=<token> K3S_NODE_NAME=node-1 sh -
 
-######################################################################################
 
 
-
+########################### prep worker vm for k3s ###################################
 
 kubectl get svc
 
@@ -64,8 +62,12 @@ kubectl delete all --all
 kubectl scale deployment web-api-deployment --replicas=5
 kubectl get pods -l app=web-api -o wide
 
+#Restart k3s
+sudo systemctl restart k3s
 
-approaches:
+
+
+########################### setup options ###################################
 
 #1
 A single-node server installation
@@ -78,3 +80,15 @@ one master node with worker node(s) installation
 with manual setup
 with nodeport
 with web api only
+
+
+
+########################### end game ###################################
+k3s HA cluster (3+2) with load balancer and ingress
+quoting api + rabbitmq + worker + open source sql db
+k8s auto scaling setup
+load testing framework
+k8s scaling dashboard 
+
+
+
