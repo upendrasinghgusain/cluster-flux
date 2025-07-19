@@ -383,4 +383,4 @@ override.tf.json
 .terraform.lock.hcl
 
 infra/outputs/
-
+temp/
