@@ -89,6 +89,20 @@ quoting api + rabbitmq + worker + open source sql db
 k8s auto scaling setup
 load testing framework
 k8s scaling dashboard 
+next: Azure Virtual Machine Scale Set (VMSS) 
+    (for Cluster Autoscaler (CA) scales the number of nodes (VMs or physical machines) in your Kubernetes cluster. 
+    Horizontal Pod Autoscaler (HPA) versus Cluster Autoscaler (CA))
 
 
 
+
+
+####################### networking ####################################
+
+Create a single Azure Virtual Network (VNet) and a single Subnet within it.
+
+Create a single Network Security Group (NSG) and associate it with that subnet. 
+Define all the necessary inbound rules as described in the "NSG Rules" section of the previous detailed instructions.
+(remember region vcpu limit!) requested new limit
+https://learn.microsoft.com/en-us/azure/quotas/regional-quota-requests
+public ip only on  load balancer

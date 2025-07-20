@@ -53,7 +53,7 @@ metadata:
     kubernetes.io/ingress.class: "traefik" # Explicitly specify Traefik (default in K3s)
 spec:
   rules:
-  - host: upendra.gusain.co.uk # Replace with your actual domain
+  - host: clusterflux.co.uk # Replace with your actual domain
     http:
       paths:
       - path: /

@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aspnet-api-deployment
+  labels:
+    app: aspnet-api
+spec:
+  replicas: 1 # Start with 1 replica for initial deployment
+  selector:
+    matchLabels:
+      app: aspnet-api
+  template:
+    metadata:
+      labels:
+        app: aspnet-api
+    spec:
+      containers:
+      - name: aspnet-api
+        image: upendragusain/clusterflux-api:latest # REPLACE WITH YOUR IMAGE
+        imagePullPolicy: Always # Add this line
+        ports:
+        - containerPort: 8080 # Your API's internal container port
+        env:
+        - name: ASPNETCORE_URLS
+          value: http://+:8080 # Ensure it listens on the correct port
+        resources:
+          requests:
+            cpu: "200m" # Request 20% of a CPU core
+            memory: "128Mi" # Request 128 MB of memory
+          limits:
+            cpu: "500m" # Max 50% of a CPU core
+            memory: "256Mi" # Max 256 MB of memory
+      # Tolerations to allow scheduling on control-plane nodes (masters)
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+          effect: NoSchedule
+        - key: CriticalAddonsOnly
+          operator: Exists
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aspnet-api-service
+spec:
+  selector:
+    app: aspnet-api
+  ports:
+    - protocol: TCP
+      port: 80 # Service port (internal to cluster)
+      targetPort: 8080 # Container port
+  type: ClusterIP # Only accessible within the cluster
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aspnet-api-ingress
+  annotations:
+    # Optional: If you want to use Let's Encrypt for automatic TLS (requires cert-manager)
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    kubernetes.io/ingress.class: "traefik" # Explicitly specify Traefik (default in K3s)
+spec:
+  rules:
+  - host: clusterflux.co.uk # Replace with your actual domain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: aspnet-api-service
+            port:
+              number: 80 # The port of the Service (aspnet-api-service)  
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: aspnet-api-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: aspnet-api-deployment
+  minReplicas: 1 # Start with 1 pod
+  maxReplicas: 5 # Scale up to 5 pods
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70 # Target 70% CPU utilization                       
