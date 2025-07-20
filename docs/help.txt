@@ -106,3 +106,10 @@ Define all the necessary inbound rules as described in the "NSG Rules" section o
 (remember region vcpu limit!) requested new limit
 https://learn.microsoft.com/en-us/azure/quotas/regional-quota-requests
 public ip only on  load balancer
+
+
+####################### todo ####################################
+use paths for different websites clusterflux.co.uk/quoting, clusterflux.co.uk/policy etc.
+look into scaling dashboard or visualization
+host rabbitmq in the cluster
+make it accessible from the quoting api
