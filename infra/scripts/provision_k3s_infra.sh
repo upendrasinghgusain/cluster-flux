@@ -404,6 +404,7 @@ echo "Remember to update your DNS 'A' record for your fake domain to point to th
 #     protocol: TCP
 #     targetPort: 8443 # <-- Changed to 8443
 # #
+#kubectl get svc -n kube-system traefik -o yaml
 
 # update host file with load balancer public ip
 
