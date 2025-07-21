@@ -24,7 +24,7 @@ YOUR_PUBLIC_IP="*" # Allowing SSH from any IP (0.0.0.0/0)
 # Virtual Machines (VMs)
 VM_PREFIX="k3s-server"
 ADMIN_USERNAME="upendragusain" # Your desired SSH username
-SSH_PUBLIC_KEY_PATH="~/.ssh/id_rsa.pub" # Path to your SSH public key
+SSH_PUBLIC_KEY_PATH="~/.ssh/id_rsa.pub" # Path to your SSH public key on azure cli
 
 # Public IP addresses for VMs (will be created automatically)
 VM1_PUBLIC_IP_NAME="${VM_PREFIX}1-pip"
@@ -337,6 +337,8 @@ echo ""
 echo "5. After all K3s servers are running, verify the cluster from vm1:"
 echo "   sudo k3s kubectl get nodes"
 echo ""
+echo "sudo chmod 644 /etc/rancher/k3s/k3s.yaml"
+echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml"
 echo "6. Get Traefik's NodePorts (from vm1):"
 echo "   kubectl get svc -n kube-system traefik -o jsonpath='{.spec.ports}'"
 echo "   (Look for the nodePort values for ports 80 and 443, and update your Azure Load Balancer rules if needed)"
@@ -403,12 +405,12 @@ echo "Remember to update your DNS 'A' record for your fake domain to point to th
 #     targetPort: 8443 # <-- Changed to 8443
 # #
 
-# replicate NSG rules from C:\Development\PoCs\ClusterFlux\temp\nsg.png
-# open 30234
-
 # update host file with load balancer public ip
 
 #http://clusterflux.co.uk/swagger/index.html
+
+#sudo cat /etc/rancher/k3s/k3s.yaml
+#copy and it to .kube config folder and update the ip with vm1's public ip
 
 #kubectl apply -f C:\Development\PoCs\ClusterFlux\k8s-manifests\ha-ingress-web-api.yaml
 

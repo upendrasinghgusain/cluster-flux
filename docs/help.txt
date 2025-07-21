@@ -1,10 +1,13 @@
+# docker stuff
+docker build -t clusterflux-api .
+docker run --name clusterflux-api -p 32780:8080 clusterflux-api
+docker login
+docker tag clusterflux-api upendragusain/clusterflux-api
+docker push upendragusain/clusterflux-api
+docker run --name cf1 -p 32781:8080 upendragusain/clusterflux-api
+
 # create ssh keys
 ssh-keygen -t rsa -b 4096
-
-# one click
-chmod +x provision-and-setup.sh
-./provision-and-setup.sh
-
 
 # list vm ips
 az vm list-ip-addresses --resource-group rg-cluster-flux --output table
@@ -109,7 +112,9 @@ public ip only on  load balancer
 
 
 ####################### todo ####################################
+make provisioning repeatable
 use paths for different websites clusterflux.co.uk/quoting, clusterflux.co.uk/policy etc.
-look into scaling dashboard or visualization
+look into scaling dashboard or visualization (lens!)
 host rabbitmq in the cluster
 make it accessible from the quoting api
+load testing (k6!)
