@@ -4,9 +4,9 @@ import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 
 export let options = {
   stages: [
-    { duration: '30s', target: 50 },
     { duration: '1m', target: 50 },
-    { duration: '30s', target: 0 },
+    { duration: '20s', target: 50 },
+    { duration: '10s', target: 0 },
   ],
 };
 
@@ -17,7 +17,7 @@ function randomString(prefix) {
 }
 
 export default function () {
-  const url = 'http://localhost:32781/api/Quote'; // 🔁 Replace this with your actual URL
+  const url = 'http://clusterflux.co.uk/api/Quote'; // 🔁 Replace this with your actual URL
 
   const payload = JSON.stringify({
     clientId: uuidv4(),
@@ -37,5 +37,5 @@ export default function () {
     'status is 200': (r) => r.status === 200,
   });
 
-  sleep(1);
+  //sleep(1);
 }

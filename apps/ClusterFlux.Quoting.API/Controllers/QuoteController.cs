@@ -26,6 +26,9 @@ namespace ClusterFlux.Quoting.API.Controllers
                 _logger.LogInformation("Creating quote for customer {ClientId} and product {ProductName}",
                     request.ClientId, request.ProductName);
                 var result = _quoteService.CreateQuote(request);
+
+                var x = SimulateCPUStress();
+
                 return Ok(result);
             }
             catch (ArgumentException ex)
@@ -40,6 +43,14 @@ namespace ClusterFlux.Quoting.API.Controllers
             _logger.LogInformation("Retrieving all quotes");
             var result = _quoteService.GetQuotes();
             return Ok(result);
+        }
+
+        private double SimulateCPUStress()
+        {
+            var data = Enumerable.Range(1, 100000000).Select(i => i * i).ToList();
+            var filtered = data.Where(x => x % 7 == 0).ToList();
+
+            return filtered.Sum(x => Math.Sqrt(x));
         }
     }
 

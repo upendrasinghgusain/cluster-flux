@@ -68,7 +68,7 @@ kubectl get pods -l app=web-api -o wide
 #Restart k3s
 sudo systemctl restart k3s
 
-
+# k6 run C:\Development\PoCs\ClusterFlux\load-tests\quote-test.js
 
 ########################### setup options ###################################
 

@@ -5,7 +5,7 @@ metadata:
   labels:
     app: aspnet-api
 spec:
-  replicas: 1 # Start with 1 replica for initial deployment
+  replicas: 1
   selector:
     matchLabels:
       app: aspnet-api
@@ -16,21 +16,20 @@ spec:
     spec:
       containers:
       - name: aspnet-api
-        image: upendragusain/clusterflux-api:latest # REPLACE WITH YOUR IMAGE
-        imagePullPolicy: Always # Add this line
+        image: upendragusain/clusterflux-api:latest
+        imagePullPolicy: Always
         ports:
-        - containerPort: 8080 # Your API's internal container port
+        - containerPort: 8080
         env:
         - name: ASPNETCORE_URLS
-          value: http://+:8080 # Ensure it listens on the correct port
+          value: http://+:8080
         resources:
           requests:
-            cpu: "200m" # Request 20% of a CPU core
-            memory: "128Mi" # Request 128 MB of memory
+            cpu: "10m"              # ⚡ Lower request makes HPA scale more pods
+            memory: "56Mi"
           limits:
-            cpu: "500m" # Max 50% of a CPU core
-            memory: "256Mi" # Max 256 MB of memory
-      # Tolerations to allow scheduling on control-plane nodes (masters)
+            cpu: "10m"              # ⚡ Keep limits tight to saturate CPU faster
+            memory: "56Mi"
       tolerations:
         - key: node-role.kubernetes.io/control-plane
           operator: Exists
@@ -50,21 +49,19 @@ spec:
     app: aspnet-api
   ports:
     - protocol: TCP
-      port: 80 # Service port (internal to cluster)
-      targetPort: 8080 # Container port
-  type: ClusterIP # Only accessible within the cluster
+      port: 80
+      targetPort: 8080
+  type: ClusterIP
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: aspnet-api-ingress
   annotations:
-    # Optional: If you want to use Let's Encrypt for automatic TLS (requires cert-manager)
-    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    kubernetes.io/ingress.class: "traefik" # Explicitly specify Traefik (default in K3s)
+    kubernetes.io/ingress.class: "traefik"
 spec:
   rules:
-  - host: clusterflux.co.uk # Replace with your actual domain
+  - host: clusterflux.co.uk
     http:
       paths:
       - path: /
@@ -73,7 +70,7 @@ spec:
           service:
             name: aspnet-api-service
             port:
-              number: 80 # The port of the Service (aspnet-api-service)  
+              number: 80
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -84,12 +81,25 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: aspnet-api-deployment
-  minReplicas: 1 # Start with 1 pod
-  maxReplicas: 5 # Scale up to 5 pods
+  minReplicas: 1
+  maxReplicas: 30                # 🚀 Allow scale to 30
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Pods             # 🔥 More aggressive scaling per cycle
+          value: 10
+          periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70 # Target 70% CPU utilization                       
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50   # 💡 Lower value => scale sooner

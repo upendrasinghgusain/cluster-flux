@@ -39,10 +39,6 @@ VM3_PRIVATE_IP="10.0.0.6"
 # Azure Load Balancer (for application ingress)
 LB_NAME="K3sAppLB"
 LB_PUBLIC_IP_NAME="K3sAppLBPublicIP"
-# Initial NodePort for Traefik HTTP. You'll confirm this after K3s installation.
-# This is typically 30080 for HTTP and 30443 for HTTPS if Traefik is enabled by default.
-TRAEFIK_HTTP_NODEPORT=30080
-TRAEFIK_HTTPS_NODEPORT=30443
 
 # K3s Token (for post-provisioning K3s installation)
 K3S_TOKEN="YOUR_SECURE_K3S_TOKEN" # <<< IMPORTANT: Replace with your actual K3s token
@@ -91,22 +87,8 @@ az network nsg rule create \
     --direction Inbound \
     --access Allow \
     --protocol "*" \
-    --destination-port-ranges "6443" "2379-2380" "8472" "10250" \
+    --destination-port-ranges "6443" "2379-2380" "8472" "10250" "80" "443" \
     --source-address-prefixes "*" \
-    --destination-address-prefixes "*"
-
-echo "   - Adding NSG rule: Allow Azure Load Balancer health probes (to NodePorts)..."
-# Corrected: Port ranges are space-separated, not comma-separated within one string
-az network nsg rule create \
-    --resource-group "$RESOURCE_GROUP_NAME" \
-    --nsg-name "$NSG_NAME" \
-    --name "AllowLBHealthProbe" \
-    --priority 300 \
-    --direction Inbound \
-    --access Allow \
-    --protocol Tcp \
-    --destination-port-ranges "$TRAEFIK_HTTP_NODEPORT" "$TRAEFIK_HTTPS_NODEPORT" \
-    --source-address-prefixes "AzureLoadBalancer" \
     --destination-address-prefixes "*"
 
 echo "   - Associating NSG with Subnet..."
@@ -262,13 +244,13 @@ az network nic ip-config update \
 
 # --- Rest of the Load Balancer configuration ---
 # Create Health Probe for Traefik's HTTP NodePort
-echo "   - Creating Health Probe for Traefik HTTP NodePort ($TRAEFIK_HTTP_NODEPORT)..."
+echo "   - Creating Health Probe for Traefik HTTP NodePort (needs updating)..."
 az network lb probe create \
     --resource-group "$RESOURCE_GROUP_NAME" \
     --lb-name "$LB_NAME" \
     --name "TraefikHTTPProbe" \
     --protocol Tcp \
-    --port "$TRAEFIK_HTTP_NODEPORT" \
+    --port "30130" \
     --interval 5 \
     --threshold 2
 
@@ -280,7 +262,7 @@ az network lb rule create \
     --name "HTTPRule" \
     --protocol Tcp \
     --frontend-port 80 \
-    --backend-port "$TRAEFIK_HTTP_NODEPORT" \
+    --backend-port "30130" \
     --frontend-ip-name "LBFrontend" \
     --backend-pool-name "K3sBackendPool" \
     --probe-name "TraefikHTTPProbe" \
@@ -294,7 +276,7 @@ az network lb rule create \
     --name "HTTPSRule" \
     --protocol Tcp \
     --frontend-port 443 \
-    --backend-port "$TRAEFIK_HTTPS_NODEPORT" \
+    --backend-port "32348" \
     --frontend-ip-name "LBFrontend" \
     --backend-pool-name "K3sBackendPool" \
     --probe-name "TraefikHTTPProbe" \
@@ -339,81 +321,28 @@ echo "   sudo k3s kubectl get nodes"
 echo ""
 echo "sudo chmod 644 /etc/rancher/k3s/k3s.yaml"
 echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml"
+echo "sudo cat /etc/rancher/k3s/k3s.yaml"
 echo "6. Get Traefik's NodePorts (from vm1):"
 echo "   kubectl get svc -n kube-system traefik -o jsonpath='{.spec.ports}'"
 echo "   (Look for the nodePort values for ports 80 and 443, and update your Azure Load Balancer rules if needed)"
 echo ""
 echo "Remember to update your DNS 'A' record for your fake domain to point to the Azure Load Balancer Public IP."
 
-
-#upendragusain@k3s-server1:~$ kubectl get svc -n kube-system traefik -o jsonpath='{.spec.ports}'
-#[{"name":"web","nodePort":30234,"port":80,"protocol":"TCP","targetPort":"web"},{"name":"websecure","nodePort":32151,"port":443,"protocol":"TCP","targetPort":"websecure"}]
-
-
-# # --- IMPORTANT: Replace with your actual Resource Group Name and LB Name ---
-# RESOURCE_GROUP_NAME="K3sClusterRG" # Ensure this matches your script's value
-# LB_NAME="K3sAppLB"                   # Ensure this matches your script's value
-
-# NEW_HTTP_NODEPORT=30234
-# NEW_HTTPS_NODEPORT=32151
-
 # echo "Updating Azure Load Balancer rules and probes to match K3s NodePorts..."
+# kubectl -n kube-system get svc traefik
+# open the 2 ports in NSG inbound ports (80:30130/TCP,443:32348/TCP)
+# update lB health probe
+# update lb rules (http and https)
 
-# # Update Health Probe for HTTP
-# echo "  - Updating Health Probe 'TraefikHTTPProbe' to port $NEW_HTTP_NODEPORT..."
-# az network lb probe update \
-#     --resource-group "$RESOURCE_GROUP_NAME" \
-#     --lb-name "$LB_NAME" \
-#     --name "TraefikHTTPProbe" \
-#     --port "$NEW_HTTP_NODEPORT"
+# update host file with load balancer public ip (must!)
+# http://clusterflux.co.uk/swagger/index.html
 
-# # Update Load Balancing Rule for HTTP (Port 80)
-# echo "  - Updating LB Rule 'HTTPRule' backend port to $NEW_HTTP_NODEPORT..."
-# az network lb rule update \
-#     --resource-group "$RESOURCE_GROUP_NAME" \
-#     --lb-name "$LB_NAME" \
-#     --name "HTTPRule" \
-#     --backend-port "$NEW_HTTP_NODEPORT"
+# http://clusterflux.co.uk/swagger/index.html
 
-# # Update Load Balancing Rule for HTTPS (Port 443)
-# echo "  - Updating LB Rule 'HTTPSRule' backend port to $NEW_HTTPS_NODEPORT..."
-# # Note: The probe for HTTPS is likely still the HTTP one unless you created a separate HTTPS probe
-# # For simplicity, we are assuming the probe you named TraefikHTTPProbe is also used for HTTPS rule.
-# # If you had created a separate HTTPS probe for port 30443, you would update that too.
-# az network lb rule update \
-#     --resource-group "$RESOURCE_GROUP_NAME" \
-#     --lb-name "$LB_NAME" \
-#     --name "HTTPSRule" \
-#     --backend-port "$NEW_HTTPS_NODEPORT"
+# sudo cat /etc/rancher/k3s/k3s.yaml
+# copy and it to .kube config folder and update the ip with vm1's public ip
 
-# echo "Azure Load Balancer rules and probes updated successfully!"
-# echo "You can now try accessing your applications via the Load Balancer's public IP."
+# kubectl apply -f C:\Development\PoCs\ClusterFlux\k8s-manifests\ha-ingress-web-api.yaml
 
-
-#kubectl edit svc -n kube-system traefik
-# #
-# ports:
-#   - name: web
-#     nodePort: 30234
-#     port: 80
-#     protocol: TCP
-#     targetPort: 8000 # <-- Changed to 8000
-#   - name: websecure
-#     nodePort: 32151
-#     port: 443
-#     protocol: TCP
-#     targetPort: 8443 # <-- Changed to 8443
-# #
-#kubectl get svc -n kube-system traefik -o yaml
-
-# update host file with load balancer public ip
-
-#http://clusterflux.co.uk/swagger/index.html
-
-#sudo cat /etc/rancher/k3s/k3s.yaml
-#copy and it to .kube config folder and update the ip with vm1's public ip
-
-#kubectl apply -f C:\Development\PoCs\ClusterFlux\k8s-manifests\ha-ingress-web-api.yaml
-
-#kubectl scale deployment aspnet-api-deployment --replicas=10
-#kubectl get pods -l app=aspnet-api -o wide
+# kubectl scale deployment aspnet-api-deployment --replicas=10
+# kubectl get pods -l app=aspnet-api -o wide
